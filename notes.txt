@@ -1,0 +1,145 @@
+user must be able to specify how many lessons and with who
+
+user must be able to hard schedule in some events. such as studio class, coachings, yavanna
+    These events can be generic events.
+    They will be characterized by 
+        label: Union[Literal["lesson", "coaching", "studio", "yavanna"], str]
+        timeblocks: List[TimeBlocks]
+        students: List[Students]
+        leader: Optional[Faculty]
+
+30 minute blocks?
+
+action schedule_event()
+    -create list of all Persons involved
+    -iterate through list and make sure everyone is available
+    
+Maybe a person requests an event to be scheduled.
+    -request event with a person.
+    -other person available?
+        yes? schedule
+        no? 
+            subtract one datetime from the event that conflicts
+            nudge the requested event by the difference between the two datetimes
+            check availability with both people.
+
+teacher availability is a list of 30 minute blocks
+
+    master schedule class is not kept during schedule generation.
+scheduler algorithm:
+    -user inputs 
+        -teacher availability
+        -yavanna class times
+        -studio class times
+        -list (for each student) of lessons to schedule, 2 lessons with same teacher are two separate lessons
+        -chamber groups
+
+    -take random chamber group
+        -take first violinist, make a lesson with random teacher from their teacher list
+            -make a list of free blocks in common
+            -grab two consecutive blocks that start after a gap in "teacher's" freeblocks (no rogue timeblocks)
+            -remove those freeblocks from list
+            -add a lesson on student and teacher objects
+        -take second violinist, make a lesson with random teacher from their teacher list
+
+
+
+Each person keeps their own schedule
+    list of freeblocks in order
+    list of lessons in order
+    list of class events in order
+    list of generic events in order
+
+Students must also keep a list of lessons_to_schedule
+
+How is the student's lessons_to_schedule list kept?
+string of teacher's names?
+maybe teachers are kept in a dictionary so that student's can access the target teacher object with the string (key)
+
+
+
+
+
+
+Student and Teacher has an attribute "lessons" which is a dictionary
+    keys=days of week
+    values=time sorted lessons.
+        -every kind of event has a date_time attribute which can be used for sorting
+        -the list is kept sorted by the inserter of an event
+
+Students have a lessons_to_schedule attribute
+    string of teacher's name
+        -teachers will be kept in a dictionay with their name as their key for quick access
+
+
+
+
+
+Todo:
+
+    0.  Make json writer that creates json data in step 1
+
+    1.  Make json data that includes:
+            --Teacher list
+                Teacher
+                    name
+                    instrument
+                    free_time
+                        dictionary
+                            keys are days of week
+                            values are available times
+                                start and end values
+                                json parser will convert this into a list of freeblocks
+
+
+            --Chamber_groups
+                id
+                name of work
+
+            --Student list
+                name
+                instrument
+                lessons_to_schedule
+                    list of teacher names
+		chamber IDs
+
+            --Studio_Classes    # maybe I should make a class for StudioClass that inherits from group class
+                instrument
+                teacher
+                start_time
+                end_time
+                
+
+    2.  Make json parser that:
+            --creates Teacher Dictionary
+                keys are teacher names
+                values are teachers
+                    freeblocks are 30 minute blocks made from free_time json value 
+
+            --creates Student Dictionary
+                keys are Student names
+                values are Students
+                    name
+                    instrument
+                    lessons_to_schedule
+                    chamber_group_id
+
+            --creates Chamber_group dictionay
+                keys are chamber_id
+                value is name of work
+
+            --takes the studio class info and adds them to students' schedules
+                function in scheduler module
+                    schedule_studio_class(instrument: Instrument, Union[List[Student], List[ChamberGroup]])
+
+    3.  Build Utility functions
+            --Get list of students in a specific chamber group(takes in chamber group id)
+            --Get list of students who play... (takes in list of students and instrument, returns list of students who play...)
+
+    4.  Build method to schedule a lesson at a time
+            --Student.schedule_lesson(teacher: Teacher, day_of_week)
+                This should check for two consecutive free blocks that are shared between teacher/student on a given day
+                This should be accessed by the scheduler using teacher_dictionary[Student.lessons_to_schedule[index]]
+
+
+
